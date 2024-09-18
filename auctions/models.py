@@ -54,6 +54,7 @@ class WatchList(models.Model):
 class Comment(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
+    text = models.TextField()
+    
     def __str__(self) -> str:
         return f"{self.user} - {self.listing}"
