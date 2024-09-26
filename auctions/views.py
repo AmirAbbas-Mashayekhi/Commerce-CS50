@@ -15,11 +15,10 @@ def index(request):
     active_listings = Listing.objects.filter(active=True).annotate(
         current_price=Case(
             # If there are bids, use the highest bid amount
-            When(bids__isnull=False, then=Max('bids__amount')),
-            
+            When(bids__isnull=False, then=Max("bids__amount")),
             # Otherwise, fall back to the `starting_bid`
-            default=F('starting_bid'),
-            output_field=DecimalField()
+            default=F("starting_bid"),
+            output_field=DecimalField(),
         )
     )
     return render(
@@ -97,3 +96,14 @@ def create_listing(request):
     else:
         form = ListingForm()
         return render(request, "auctions/create_listing.html", {"form": form})
+
+
+@login_required
+def listing_detail(request, pk):
+    try:
+        listing = Listing.objects.get(pk=pk)
+        return render(request, "auctions/listing_detail.html", {"listing": listing})
+    except Listing.DoesNotExist:
+        return render(
+            request, "auctions/error.html", {"code": 404, "message": "Not found"}
+        )

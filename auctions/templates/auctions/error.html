@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %} 
+
+
+{% block title %} {{ message }} {% endblock title %}
+
+{% block body %}
+<div class="container mt-5">
+  <div class="d-flex w-100 flex-column" style="align-items: center;justify-content: center;">
+    <img
+      src="https://cdn.dribbble.com/userupload/4490568/file/original-07d5e90003932632c0fe0ddc11c91948.png?resize=1024x768"
+      alt="error image"
+      class="d-block w-50 rounded"
+    />
+  <h1 class="text-center">{{ message }}</h1>
+</div>
+</div>
+{% endblock body %}

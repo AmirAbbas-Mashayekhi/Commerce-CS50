@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinValueValidator
 
+from .managers import ListingManager
+
 
 class User(AbstractUser):
     pass
@@ -35,6 +37,8 @@ class Listing(models.Model):
         related_name="listings",
     )
 
+    objects = ListingManager()
+
     def __str__(self) -> str:
         return self.title
 
@@ -42,7 +46,7 @@ class Listing(models.Model):
 class Bid(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='bids')
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bids")
 
     def __str__(self) -> str:
         return f"{self.user} - {self.listing}"

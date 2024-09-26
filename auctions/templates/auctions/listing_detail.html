@@ -1,0 +1,23 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    listing.title
+{% endblock title %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="card col-12">
+                <img class="card-img-top" src="{{ listing.image_url }}" alt="Card image cap">
+                <div class="card-body">
+                  <h5 class="card-title">{{ listing.title }}</h5>
+                  <p class="card-text">
+                    {{ listing.description }}
+                    <h5 class="card-text">${{ listing.current_price }}</h5>
+                  </p>
+                  <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+              </div>
+        </div>
+    </div>
+{% endblock body %}
