@@ -1,23 +1,47 @@
-{% extends "auctions/layout.html" %}
+{% extends "auctions/layout.html" %} 
 
-{% block title %}
-    listing.title
-{% endblock title %}
+{% block title %} {{ listing.title }} {% endblock title %} 
 
 {% block body %}
-    <div class="container">
-        <div class="row">
-            <div class="card col-12">
-                <img class="card-img-top" src="{{ listing.image_url }}" alt="Card image cap">
-                <div class="card-body">
-                  <h5 class="card-title">{{ listing.title }}</h5>
-                  <p class="card-text">
-                    {{ listing.description }}
-                    <h5 class="card-text">${{ listing.current_price }}</h5>
-                  </p>
-                  <a href="#" class="btn btn-primary">Go somewhere</a>
-                </div>
-              </div>
+  <div class="container">
+  <div class="row">
+    <div class="card col-12">
+      <img
+        class="card-img-top"
+        src="{{ listing.image_url }}"
+        alt="Card image cap"
+        style="height: 500px; object-fit: cover;"
+      />
+      <div class="card-body">
+        <h5 class="card-title">{{ listing.title }}</h5>
+        <div class="card-text">
+          <p>{{ listing.description }}</p>
+          <h5 class="card-text">Price: ${{ listing.current_price }}</h5>
+          <br>
         </div>
+        
+        <div class="d-flex justify-content-between w-100">
+          <!-- Check if user is authenticated -->
+          {% if user.is_authenticated %}
+            <!-- If item is in user's watch list -->
+            {% if is_in_watch_list %}
+              <form action="{% url 'remove-from-watch-list' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                <input type="submit" value="Remove Watch List" class="btn btn-danger">
+              </form>
+            <!-- If item is not in user's watch list -->
+            {% else %}
+            <form action="{% url 'add-to-watch-list' %}" method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="listing_id" value="{{ listing.id }}">
+              <input type="submit" value="Add to Watch List" class="btn btn-primary">
+            </form>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
     </div>
+  </div>
+  </div>
 {% endblock body %}

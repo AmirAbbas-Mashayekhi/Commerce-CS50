@@ -60,6 +60,9 @@ class WatchList(models.Model):
     def __str__(self) -> str:
         return f"{self.user} - {self.listing}"
 
+    class Meta:
+        unique_together = [["listing", "user"]]
+
 
 class Comment(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)

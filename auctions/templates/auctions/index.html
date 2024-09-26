@@ -3,22 +3,24 @@
 
 <div class="container-fluid">
   {% for listing in active_listings %}
-  <div class="wrapper row gap-3 my-3 border" style="height: 200px">
-    <div class="image col-12 col-md-6 col-lg-3" style="height: 100%">
-      <img
-        src="{{ listing.image_url }}"
-        alt="{{ listing.title }}"
-        class="w-100"
-        style="height: 100%; object-fit: cover"
-      />
+  <a href="{% url 'listing-detail' listing.id%}" style="text-decoration: none">
+    <div class="wrapper row gap-3 my-3 border" style="height: 200px">
+      <div class="image col-6 col-lg-3" style="height: 100%">
+        <img
+          src="{{ listing.image_url }}"
+          alt="{{ listing.title }}"
+          class="w-100"
+          style="height: 100%; object-fit: cover"
+        />
+      </div>
+      <div class="info mt-3 text-truncate">
+        <h4 class="">{{ listing.title }}</h4>
+        <p>price: ${{ listing.current_price }}</p>
+        <p class="small">{{ listing.description }}</p>
+        <p class="small text-muted">{{ listing.created_at }}</p>
+      </div>
     </div>
-    <div class="info mt-3 text-truncate">
-      <h4 class="">{{ listing.title }}</h4>
-      <p>price: ${{ listing.current_price }}</p>
-      <p class="small">{{ listing.description }}</p>
-      <p class="small text-muted">{{ listing.created_at }}</p>
-    </div>
-  </div>
+  </a>
   {% endfor %}
 </div>
 {% endblock %}
