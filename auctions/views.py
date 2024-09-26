@@ -1,14 +1,32 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import F, Case, When, Max, DecimalField
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .forms import ListingForm
+
+from .models import Listing, User
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    active_listings = Listing.objects.filter(active=True).annotate(
+        current_price=Case(
+            # If there are bids, use the highest bid amount
+            When(bids__isnull=False, then=Max('bids__amount')),
+            
+            # Otherwise, fall back to the `starting_bid`
+            default=F('starting_bid'),
+            output_field=DecimalField()
+        )
+    )
+    return render(
+        request,
+        "auctions/index.html",
+        {"active_listings": active_listings},
+    )
 
 
 def login_view(request):
@@ -65,3 +83,17 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+@login_required
+def create_listing(request):
+    if request.method == "POST":
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            Listing.objects.create(user=request.user, active=True, **form.cleaned_data)
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            return render(request, "auctions/create_listing.html", {"form": form})
+    else:
+        form = ListingForm()
+        return render(request, "auctions/create_listing.html", {"form": form})
