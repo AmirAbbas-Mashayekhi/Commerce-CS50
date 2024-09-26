@@ -99,6 +99,7 @@ def create_listing(request):
 
 
 def listing_detail(request, pk):
+    is_anon_user = request.user.is_anonymous
     try:
         listing = Listing.objects.get(pk=pk)
         return render(
@@ -106,9 +107,13 @@ def listing_detail(request, pk):
             "auctions/listing_detail.html",
             {
                 "listing": listing,
-                "is_in_watch_list": WatchList.objects.filter(
-                    user=request.user, listing=listing
-                ).exists(),
+                "is_in_watch_list": (
+                    False
+                    if is_anon_user
+                    else WatchList.objects.filter(
+                        user=request.user, listing=listing
+                    ).exists()
+                ),
             },
         )
     except Listing.DoesNotExist:
@@ -127,15 +132,16 @@ def add_to_watch_list(request):
             request, "error.html", {"code": 404, "message": "Listing not found"}
         )
     try:
-        WatchList.objects.create(
-            user=request.user, listing=listing
-        )
+        WatchList.objects.create(user=request.user, listing=listing)
     except IntegrityError:
         return render(
-            request, "auctions/error.html", {"code": 400, "message": "Listing Already in WatchList."}
+            request,
+            "auctions/error.html",
+            {"code": 400, "message": "Listing Already in WatchList."},
         )
 
-    return HttpResponseRedirect(reverse('listing-detail', args=[listing_id]))
+    return HttpResponseRedirect(reverse("listing-detail", args=[listing_id]))
+
 
 @login_required
 def remove_from_watch_list(request):
@@ -146,7 +152,7 @@ def remove_from_watch_list(request):
         return render(
             request, "error.html", {"code": 404, "message": "Listing not found"}
         )
-    
+
     try:
         watch_list = WatchList.objects.get(user=request.user, listing=listing)
         watch_list.delete()
@@ -154,4 +160,4 @@ def remove_from_watch_list(request):
         return render(
             request, "auctions/error.html", {"code": 400, "message": "Bad Request"}
         )
-    return HttpResponseRedirect(reverse('listing-detail', args=[listing_id]))
+    return HttpResponseRedirect(reverse("listing-detail", args=[listing_id]))
