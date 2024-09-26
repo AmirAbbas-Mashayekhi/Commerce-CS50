@@ -98,7 +98,6 @@ def create_listing(request):
         return render(request, "auctions/create_listing.html", {"form": form})
 
 
-@login_required
 def listing_detail(request, pk):
     try:
         listing = Listing.objects.get(pk=pk)
