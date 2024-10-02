@@ -1,26 +1,19 @@
+import decimal
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import F, Case, When, Max, DecimalField
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from .forms import ListingForm
+from .forms import AddBidForm, ListingForm
 
-from .models import Listing, User, WatchList
+from .models import Bid, Listing, User, WatchList
 
 
 def index(request):
-    active_listings = Listing.objects.filter(active=True).annotate(
-        current_price=Case(
-            # If there are bids, use the highest bid amount
-            When(bids__isnull=False, then=Max("bids__amount")),
-            # Otherwise, fall back to the `starting_bid`
-            default=F("starting_bid"),
-            output_field=DecimalField(),
-        )
-    )
+    active_listings = Listing.objects.filter(active=True)
     return render(
         request,
         "auctions/index.html",
@@ -88,38 +81,56 @@ def register(request):
 def create_listing(request):
     if request.method == "POST":
         form = ListingForm(request.POST)
-        if form.is_valid():
-            Listing.objects.create(user=request.user, active=True, **form.cleaned_data)
-            return HttpResponseRedirect(reverse("index"))
+        bid_form = AddBidForm(request.POST)
+        
+        if form.is_valid() and bid_form.is_valid():
+
+            with transaction.atomic():
+                # Create Listing object
+                listing = Listing.objects.create(
+                    user=request.user, active=True, **form.cleaned_data
+                )
+
+                # Create Bid object as the starting bid
+                Bid.objects.create(
+                    user=request.user,
+                    listing=listing,
+                    amount=bid_form.cleaned_data["amount"],
+                )
+                return HttpResponseRedirect(reverse("index"))
         else:
-            return render(request, "auctions/create_listing.html", {"form": form})
+            return render(request, "auctions/create_listing.html", {"form": form, "bid_form": bid_form})
     else:
         form = ListingForm()
-        return render(request, "auctions/create_listing.html", {"form": form})
+        bid_form = AddBidForm()
+        return render(
+            request,
+            "auctions/create_listing.html",
+            {"form": form, "bid_form": bid_form},
+        )
 
 
 def listing_detail(request, pk):
     is_anon_user = request.user.is_anonymous
-    try:
-        listing = Listing.objects.get(pk=pk)
-        return render(
-            request,
-            "auctions/listing_detail.html",
-            {
-                "listing": listing,
-                "is_in_watch_list": (
-                    False
-                    if is_anon_user
-                    else WatchList.objects.filter(
-                        user=request.user, listing=listing
-                    ).exists()
-                ),
-            },
-        )
-    except Listing.DoesNotExist:
-        return render(
-            request, "auctions/error.html", {"code": 404, "message": "Not found"}
-        )
+    bidding_form = AddBidForm()
+
+    listing = get_object_or_404(Listing, pk=pk)
+
+    return render(
+        request,
+        "auctions/listing_detail.html",
+        {
+            "bidding_form": bidding_form,
+            "listing": listing,
+            "is_in_watch_list": (
+                False
+                if is_anon_user
+                else WatchList.objects.filter(
+                    user=request.user, listing=listing
+                ).exists()
+            ),
+        },
+    )
 
 
 @login_required
@@ -129,7 +140,9 @@ def add_to_watch_list(request):
         listing = Listing.objects.get(pk=listing_id)
     except Listing.DoesNotExist:
         return render(
-            request, "error.html", {"code": 404, "message": "Listing not found"}
+            request,
+            "auctions/error.html",
+            {"code": 404, "message": "Listing not found"},
         )
     try:
         WatchList.objects.create(user=request.user, listing=listing)
@@ -150,7 +163,9 @@ def remove_from_watch_list(request):
         listing = Listing.objects.get(pk=listing_id)
     except Listing.DoesNotExist:
         return render(
-            request, "error.html", {"code": 404, "message": "Listing not found"}
+            request,
+            "auctions/error.html",
+            {"code": 404, "message": "Listing not found"},
         )
 
     try:
@@ -161,3 +176,50 @@ def remove_from_watch_list(request):
             request, "auctions/error.html", {"code": 400, "message": "Bad Request"}
         )
     return HttpResponseRedirect(reverse("listing-detail", args=[listing_id]))
+
+
+@login_required
+def add_bid(request):
+    listing_id = request.POST.get("listing_id")
+    amount = request.POST.get("amount")
+
+    # Ensure amount is numeric
+    try:
+        amount = round(decimal.Decimal(amount), 2)
+    except decimal.InvalidOperation:
+        return render(
+            request,
+            "auctions/error.html",
+            {"code": 400, "message": "Bid value must be numeric and monetary."},
+        )
+
+    listing = get_object_or_404(Listing, pk=listing_id)
+
+    # Check if the bid is greater than the current price
+    if amount <= listing.current_price():
+        return render(
+            request,
+            "auctions/error.html",
+            {"code": 400, "message": "The bid must be greater than the current price."},
+        )
+
+    # Create the bid
+    try:
+        Bid.objects.create(listing=listing, amount=amount, user=request.user)
+        return HttpResponseRedirect(reverse("listing-detail", args=[listing.id]))
+    except IntegrityError:
+        return render(
+            request,
+            "auctions/error.html",
+            {"code": 500, "message": "Can't create bid."},
+        )
+
+
+# TODO: Support for closing auctions
+#   - Makes the hightest bid the winner
+#   - Deactivates the listing
+
+# TODO: If user views a closed listing and is the winner the page should say so
+
+# TODO: Support for comments
+#   - Show comments on page

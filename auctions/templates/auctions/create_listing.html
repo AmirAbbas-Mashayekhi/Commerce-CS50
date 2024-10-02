@@ -5,10 +5,15 @@
 {% endblock title %}
 
 {% block body %}
-    {% if form.errors %}
+    {% if form.errors or bid_form.errors %}
     <div class="alert alert-danger">
         <ul>
             {% for field in form %}
+                {% if field.errors %}
+                    <li>{{ field.label }}: {{ field.errors|striptags }}</li>
+                {% endif %}
+            {% endfor %}
+            {% for field in bid_form %}
                 {% if field.errors %}
                     <li>{{ field.label }}: {{ field.errors|striptags }}</li>
                 {% endif %}
@@ -19,10 +24,14 @@
         </ul>
     </div>
     {% endif %}
+    
     <h3 class="display-4 text-center">Create New Listing</h3>
+    
     <div class="container col-12 col-md-8 col-lg-6">
         <form action="{% url 'create-listing' %}" method="POST">
             {% csrf_token %}
+            
+            <!-- Listing Form Fields -->
             <div class="form-group">
                 {{ form.title.label_tag }}
                 {{ form.title }}
@@ -32,10 +41,6 @@
                 {{ form.description }}
             </div>
             <div class="form-group">
-                {{ form.starting_bid.label_tag }}
-                {{ form.starting_bid }}
-            </div>
-            <div class="form-group">
                 {{ form.image_url.label_tag }}
                 {{ form.image_url }}
             </div>
@@ -43,6 +48,13 @@
                 {{ form.category.label_tag }}
                 {{ form.category }}
             </div>
+            
+            <!-- Bid Form Fields (for starting bid) -->
+            <div class="form-group">
+                {{ bid_form.amount.label_tag }}
+                {{ bid_form.amount }}
+            </div>
+            
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>

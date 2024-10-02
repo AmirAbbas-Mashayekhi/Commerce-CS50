@@ -15,7 +15,7 @@
       </div>
       <div class="info mt-3 text-truncate">
         <h4 class="">{{ listing.title }}</h4>
-        <p>price: ${{ listing.current_price }}</p>
+        <p>price: ${{ listing.current_price|floatformat:2 }}</p>
         <p class="small">{{ listing.description }}</p>
         <p class="small text-muted">{{ listing.created_at }}</p>
       </div>

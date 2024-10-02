@@ -1,4 +1,4 @@
-
+import decimal
 from django import forms
 from .models import Listing
 
@@ -9,7 +9,6 @@ class ListingForm(forms.ModelForm):
         fields = [
             "title",
             "description",
-            "starting_bid",
             "image_url",
             "category",
         ]
@@ -32,3 +31,7 @@ class ListingForm(forms.ModelForm):
             ),
             "category": forms.Select(attrs={"class": "form-control"}),
         }
+
+
+class AddBidForm(forms.Form):
+    amount = forms.DecimalField(max_digits=7, decimal_places=2, min_value=decimal.Decimal(1.0))

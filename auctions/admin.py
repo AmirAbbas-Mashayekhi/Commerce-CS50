@@ -22,7 +22,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(models.Listing)
 class ListingAdmin(admin.ModelAdmin):
-    list_display = ["id", "active", "title", "starting_bid", "category", "user"]
+    list_display = ["id", "active", "title", "category", "user"]
     list_editable = ["active"]
     search_fields = ["title__istartswith"]
     autocomplete_fields = ["category", "user"]

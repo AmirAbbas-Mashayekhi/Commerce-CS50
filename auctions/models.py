@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Max
 from django.core.validators import MinValueValidator
 
-from .managers import ListingManager
 
 
 class User(AbstractUser):
@@ -20,11 +20,6 @@ class Category(models.Model):
 class Listing(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    starting_bid = models.DecimalField(
-        max_digits=7,
-        decimal_places=2,
-        validators=[MinValueValidator(1.0)],
-    )
     image_url = models.URLField(blank=True, null=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -37,7 +32,9 @@ class Listing(models.Model):
         related_name="listings",
     )
 
-    objects = ListingManager()
+    def current_price(self):
+        highest_bid = self.bids.aggregate(Max('amount'))['amount__max']
+        return highest_bid if highest_bid is not None else 0
 
     def __str__(self) -> str:
         return self.title
@@ -45,11 +42,14 @@ class Listing(models.Model):
 
 class Bid(models.Model):
     amount = models.DecimalField(max_digits=7, decimal_places=2)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bids")
 
     def __str__(self) -> str:
         return f"{self.user} - {self.listing}"
+
+    class Meta:
+        unique_together = [["listing", "user", "amount"]]
 
 
 class WatchList(models.Model):
@@ -72,3 +72,6 @@ class Comment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user} - {self.listing}"
+
+
+# TODO: Add winner class
