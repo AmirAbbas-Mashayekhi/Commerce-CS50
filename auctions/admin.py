@@ -48,3 +48,10 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ["listing", "user", "created_at"]
     autocomplete_fields = ["listing", "user"]
     list_per_page = 20
+
+
+@admin.register(models.Winner)
+class WinnerAdmin(admin.ModelAdmin):
+    list_display = ["listing", "user", "created_at"]
+    autocomplete_fields = ["listing", "user"]
+    list_per_page = 20
