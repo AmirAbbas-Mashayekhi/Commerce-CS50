@@ -49,7 +49,7 @@
           <form action="{% url 'add-bid' %}" method="POST">
             {% csrf_token %} {{ bidding_form }}
             <input type="hidden" name="listing_id" value="{{ listing.id }}" />
-            <input type="submit" value="Bid" class="btn btn-secondary" />
+            <input type="submit" value="Bid" class="btn btn-secondary w-100" />
           </form>
           {% endif %}
         </div>
