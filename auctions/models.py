@@ -4,7 +4,6 @@ from django.db.models import Max
 from django.core.validators import MinValueValidator
 
 
-
 class User(AbstractUser):
     pass
 
@@ -33,7 +32,7 @@ class Listing(models.Model):
     )
 
     def current_price(self):
-        highest_bid = self.bids.aggregate(Max('amount'))['amount__max']
+        highest_bid = self.bids.aggregate(Max("amount"))["amount__max"]
         return highest_bid if highest_bid is not None else 0
 
     def __str__(self) -> str:
@@ -74,4 +73,11 @@ class Comment(models.Model):
         return f"{self.user} - {self.listing}"
 
 
-# TODO: Add winner class
+class Winner(models.Model):
+    listing = models.OneToOneField(
+        Listing, on_delete=models.CASCADE, related_name="winner"
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="won_auctions"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
