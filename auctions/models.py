@@ -53,7 +53,7 @@ class Bid(models.Model):
 
 class WatchList(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlists')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

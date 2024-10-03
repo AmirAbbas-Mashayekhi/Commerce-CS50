@@ -126,7 +126,11 @@ def listing_detail(request, pk):
     is_owner = request.user == listing.user
 
     # Check if user is the winner
-    is_winner = False if is_anon_user else Winner.objects.filter(user=request.user, listing=listing).exists()
+    is_winner = (
+        False
+        if is_anon_user
+        else Winner.objects.filter(user=request.user, listing=listing).exists()
+    )
 
     return render(
         request,
@@ -267,3 +271,11 @@ def add_comments(request):
     Comment.objects.create(user=user, listing=listing, text=text)
 
     return HttpResponseRedirect(reverse("listing-detail", args=[listing.id]))
+
+
+@login_required
+def watchlist(request):
+    # Get current user's watchlist
+    watchlist_listings = WatchList.objects.filter(user=request.user)
+
+    return render(request, "auctions/watchlist.html", {"watchlist": watchlist_listings})

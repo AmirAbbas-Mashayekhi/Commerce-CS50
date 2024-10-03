@@ -1,0 +1,34 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+  Watch List
+{% endblock title %}
+
+{% block body %}
+  {% if not watchlist %}
+    <h2 class="display-4">No Items in the watch list.</h2>
+  {% else %}
+  <div class="container-fluid">
+    {% for watchlist_item in watchlist %}
+    <a href="{% url 'listing-detail' watchlist_item.listing.id%}" style="text-decoration: none">
+      <div class="wrapper row gap-3 my-3 border" style="height: 200px">
+        <div class="image col-6 col-lg-3" style="height: 100%">
+          <img
+            src="{{ watchlist_item.listing.image_url }}"
+            alt="{{ watchlist_item.listing.title }}"
+            class="w-100"
+            style="height: 100%; object-fit: cover"
+          />
+        </div>
+        <div class="info mt-3 text-truncate">
+          <h4 class="">{{ watchlist_item.listing.title }}</h4>
+          <p>price: ${{ watchlist_item.listing.current_price|floatformat:2 }}</p>
+          <p class="small">{{ watchlist_item.listing.description }}</p>
+          <p class="small text-muted">{{ watchlist_item.listing.created_at }}</p>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock body %}
