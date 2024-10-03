@@ -1,5 +1,7 @@
 {% extends "auctions/layout.html" %} 
-{% block title %} {{ listing.title }} {% endblock title %} 
+
+{% block title %} {{ listing.title }} {%endblock title %} 
+
 {% block body %}
 <div class="container">
   <div class="row">
@@ -10,17 +12,18 @@
         alt="Card image cap"
         style="height: 500px; object-fit: cover"
       />
-      <div class="card-body">
-        <h5 class="card-title">{{ listing.title }}</h5>
-        <div class="card-text">
-          <p>{{ listing.description }}</p>
-          <h5 class="card-text">Price: ${{ listing.current_price|floatformat:2 }}</h5>
-          <br />
-        </div>
-
-        <div class="d-flex justify-content-between w-100">
+      <div class="card-body row justify-content-between" style="align-items: center;">
+        <div class="left col-12 col-lg-8">
+          <h5 class="card-title">{{ listing.title }}</h5>
+          <div class="card-text">
+            <p>{{ listing.description }}</p>
+            <h5 class="card-text">
+              Price: ${{ listing.current_price|floatformat:2 }}
+            </h5>
+            <br />
+          </div>
           <!-- Check if user is authenticated -->
-          {% if user.is_authenticated %}
+          {% if user.is_authenticated and listing.active%}
           <!-- If item is in user's watch list -->
           {% if is_in_watch_list %}
           <form action="{% url 'remove-from-watch-list' %}" method="POST">
@@ -44,17 +47,44 @@
             />
           </form>
           {% endif %}
+        </div>
 
+        <div class="right col-12 col-lg-4 text-center mt-4">
           <!-- Bidding form -->
           <form action="{% url 'add-bid' %}" method="POST">
             {% csrf_token %} {{ bidding_form }}
             <input type="hidden" name="listing_id" value="{{ listing.id }}" />
-            <input type="submit" value="Bid" class="btn btn-secondary w-100" />
+            <input type="submit" value="Bid" class="btn btn-secondary w-50" />
           </form>
+          {% if is_owner %}
+            <h4 class="display-6 mt-3">Close Auction</h4>
+            <form action="{% url 'close-auction' %}" method="POST">
+              {% csrf_token %}
+              <input type="hidden" value="{{ listing.id }}" name="listing_id">
+              <input type="submit" value="Close" class="btn btn-danger w-50">
+            </form>
           {% endif %}
         </div>
+      {% endif %}
       </div>
     </div>
+    <!-- If won -->
+    {% if is_winner and not listing.active %}
+    <div class="alert text-center" role="alert">
+      <p class="display-4">You have won this auction!🥳🍾</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="container text-center mt-5">
+    <h4 class="display-4 my-5 ">Comments💬</h4>
+    {% for comment in comments %}
+    <div class="alert mb-3 border" role="alert">
+      <header><p><b>{{ comment.user }}</b></p></header>
+      <p>{{ comment.text }}</p>
+      <hr>
+      <p class="muted small">{{ comment.created_at }}</p>
+    </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock body %}

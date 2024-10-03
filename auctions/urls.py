@@ -14,4 +14,5 @@ urlpatterns = [
         "watchlists/remove", views.remove_from_watch_list, name="remove-from-watch-list"
     ),
     path("bids/create", views.add_bid, name="add-bid"),
+    path("listings/close", views.close_auction, name="close-auction"),
 ]

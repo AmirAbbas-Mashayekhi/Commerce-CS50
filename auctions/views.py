@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from .forms import AddBidForm, ListingForm
 
-from .models import Bid, Listing, User, WatchList
+from .models import Bid, Listing, User, WatchList, Winner
 
 
 def index(request):
@@ -82,7 +82,7 @@ def create_listing(request):
     if request.method == "POST":
         form = ListingForm(request.POST)
         bid_form = AddBidForm(request.POST)
-        
+
         if form.is_valid() and bid_form.is_valid():
 
             with transaction.atomic():
@@ -99,7 +99,11 @@ def create_listing(request):
                 )
                 return HttpResponseRedirect(reverse("index"))
         else:
-            return render(request, "auctions/create_listing.html", {"form": form, "bid_form": bid_form})
+            return render(
+                request,
+                "auctions/create_listing.html",
+                {"form": form, "bid_form": bid_form},
+            )
     else:
         form = ListingForm()
         bid_form = AddBidForm()
@@ -116,12 +120,20 @@ def listing_detail(request, pk):
 
     listing = get_object_or_404(Listing, pk=pk)
 
+    # Check if user is the one who created this listing
+    is_owner = request.user == listing.user
+
+    # Check if user is the winner
+    is_winner = Winner.objects.filter(user=request.user, listing=listing).exists()
+    
     return render(
         request,
         "auctions/listing_detail.html",
         {
             "bidding_form": bidding_form,
             "listing": listing,
+            "is_winner": is_winner,
+            "is_owner": is_owner,
             "is_in_watch_list": (
                 False
                 if is_anon_user
@@ -215,9 +227,31 @@ def add_bid(request):
         )
 
 
-# TODO: Support for closing auctions
-#   - Makes the hightest bid the winner
-#   - Deactivates the listing
+@login_required
+def close_auction(request):
+    listing = get_object_or_404(Listing, pk=request.POST.get("listing_id"))
+    user = request.user
+
+    # Check if the user making the request is the listing owner
+    if listing.user != user:
+        return render(request, "error.html", {"code": 403, "message": "forbidden"})
+
+    # Closing the auction
+    with transaction.atomic():
+        # Deactivate listing
+        listing.active = False
+        listing.save()
+
+        # Get the highest bid's user
+        winner_user = Bid.objects.get(
+            listing=listing, amount=listing.current_price()
+        ).user
+
+        # Create a new winner record for that user
+        Winner.objects.create(user=winner_user, listing=listing)
+
+    return HttpResponseRedirect(reverse("listing-detail", args=[listing.id]))
+
 
 # TODO: If user views a closed listing and is the winner the page should say so
 
