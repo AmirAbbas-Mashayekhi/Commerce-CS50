@@ -1,6 +1,6 @@
 import decimal
 from django import forms
-from .models import Listing
+from .models import Comment, Listing
 
 
 class ListingForm(forms.ModelForm):
@@ -23,9 +23,6 @@ class ListingForm(forms.ModelForm):
                     "placeholder": "Enter description",
                 }
             ),
-            "starting_bid": forms.NumberInput(
-                attrs={"class": "form-control", "placeholder": "Enter starting bid"}
-            ),
             "image_url": forms.URLInput(
                 attrs={"class": "form-control", "placeholder": "Enter image URL"}
             ),
@@ -33,5 +30,27 @@ class ListingForm(forms.ModelForm):
         }
 
 
-class AddBidForm(forms.Form):
-    amount = forms.DecimalField(max_digits=7, decimal_places=2, min_value=decimal.Decimal(1.0))
+class BidForm(forms.Form):
+    amount = forms.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        min_value=decimal.Decimal(1.0),
+        widget=forms.NumberInput(
+            attrs={"class": "form-control", "placeholder": "Enter bid"}
+        ),
+    )
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["text"]
+        widgets = {
+            "text": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Comment...",
+                }
+            ),
+        }

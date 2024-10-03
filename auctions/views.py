@@ -7,9 +7,9 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from .forms import AddBidForm, ListingForm
+from .forms import BidForm, CommentForm, ListingForm
 
-from .models import Bid, Listing, User, WatchList, Winner
+from .models import Bid, Comment, Listing, User, WatchList, Winner
 
 
 def index(request):
@@ -81,7 +81,7 @@ def register(request):
 def create_listing(request):
     if request.method == "POST":
         form = ListingForm(request.POST)
-        bid_form = AddBidForm(request.POST)
+        bid_form = BidForm(request.POST)
 
         if form.is_valid() and bid_form.is_valid():
 
@@ -106,7 +106,7 @@ def create_listing(request):
             )
     else:
         form = ListingForm()
-        bid_form = AddBidForm()
+        bid_form = BidForm()
         return render(
             request,
             "auctions/create_listing.html",
@@ -116,22 +116,26 @@ def create_listing(request):
 
 def listing_detail(request, pk):
     is_anon_user = request.user.is_anonymous
-    bidding_form = AddBidForm()
+    bidding_form = BidForm()
+    comment_form = CommentForm()
 
     listing = get_object_or_404(Listing, pk=pk)
+    comments = Comment.objects.filter(listing=listing)
 
     # Check if user is the one who created this listing
     is_owner = request.user == listing.user
 
     # Check if user is the winner
-    is_winner = Winner.objects.filter(user=request.user, listing=listing).exists()
-    
+    is_winner = False if is_anon_user else Winner.objects.filter(user=request.user, listing=listing).exists()
+
     return render(
         request,
         "auctions/listing_detail.html",
         {
             "bidding_form": bidding_form,
+            "comment_form": comment_form,
             "listing": listing,
+            "comments": comments,
             "is_winner": is_winner,
             "is_owner": is_owner,
             "is_in_watch_list": (
@@ -253,7 +257,13 @@ def close_auction(request):
     return HttpResponseRedirect(reverse("listing-detail", args=[listing.id]))
 
 
-# TODO: If user views a closed listing and is the winner the page should say so
+@login_required
+def add_comments(request):
+    listing = get_object_or_404(Listing, pk=request.POST.get("listing_id"))
+    user = request.user
+    text = request.POST.get("text")
 
-# TODO: Support for comments
-#   - Show comments on page
+    # Create Comment Object
+    Comment.objects.create(user=user, listing=listing, text=text)
+
+    return HttpResponseRedirect(reverse("listing-detail", args=[listing.id]))
