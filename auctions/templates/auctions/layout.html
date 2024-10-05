@@ -25,6 +25,11 @@
             </li>
             {% if user.is_authenticated %}
                 <li class="nav-item">
+                    <a class="nav-link" href="{% url 'create-listing' %}">
+                        Create Listing
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{% url 'watchlist' %}">
                         Watch List <span class="badge badge-danger badge-pill">{{ user.watchlists.count}}</span>
                     </a>
