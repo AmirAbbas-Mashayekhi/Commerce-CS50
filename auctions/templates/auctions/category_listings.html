@@ -1,10 +1,15 @@
 {% extends "auctions/layout.html" %}
 
+{% block title %}
+  {{ category.title }}
+{% endblock title %}
+
 {% block body %}
-<h2>Active Listings</h2>
+<h2>{{ category.title }}</h2>
 
 <div class="container-fluid">
-  {% for listing in active_listings %}
+  {% for listing in listings %}
+  {% if listing.active %}
   <a href="{% url 'listing-detail' listing.id%}" style="text-decoration: none">
     <div class="wrapper row gap-3 my-3 border" style="height: 200px">
       <div class="image col-6 col-lg-3" style="height: 100%">
@@ -23,6 +28,7 @@
       </div>
     </div>
   </a>
+  {% endif %}
   {% endfor %}
 </div>
-{% endblock %}
+{% endblock body %}

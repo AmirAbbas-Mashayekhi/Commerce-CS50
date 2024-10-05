@@ -1,0 +1,29 @@
+{% extends "auctions/layout.html" %} 
+
+{% block title %} Categories {% endblock title %} 
+
+{% block body %}
+<h2 class="display-4 text-center mb-5">Categories</h2>
+<div class="container">
+  <div class="row justify-content-center">
+    {% for category in categories %}
+    <div
+      class="category-wrapper col-lg-4 col-12 mt-4"
+      style="height: 200px;"
+    >
+      <a
+        href="{% url 'category-listings' category.id %}"
+        style="text-decoration: none"
+      >
+        <header class="text-center">
+          <h4>{{ category.title }}</h4>
+        </header>
+        <hr>
+        <p class="mt">{{ category.listings.count }} Listings</p>
+        <p class="muted small">{{ category.created_at }}</p>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock body %}

@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from .forms import BidForm, CommentForm, ListingForm
 
-from .models import Bid, Comment, Listing, User, WatchList, Winner
+from .models import Bid, Category, Comment, Listing, User, WatchList, Winner
 
 
 def index(request):
@@ -279,3 +279,16 @@ def watchlist(request):
     watchlist_listings = WatchList.objects.filter(user=request.user)
 
     return render(request, "auctions/watchlist.html", {"watchlist": watchlist_listings})
+
+
+def category_listings(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    listings = Listing.objects.filter(category=category)
+
+    return render(request, "auctions/category_listings.html", {"listings": listings})
+
+
+def categories(request):
+    categories = Category.objects.all()
+
+    return render(request, "auctions/categories.html", {"categories": categories})
