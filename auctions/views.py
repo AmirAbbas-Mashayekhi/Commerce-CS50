@@ -2,7 +2,7 @@ import decimal
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
-from django.db.models import F, Case, When, Max, DecimalField
+from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -289,6 +289,8 @@ def category_listings(request, pk):
 
 
 def categories(request):
-    categories = Category.objects.all()
+    categories = Category.objects.annotate(
+        listings_count=Count("listings", filter=Q(listings__active=True))
+    ).all()
 
     return render(request, "auctions/categories.html", {"categories": categories})
