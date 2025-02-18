@@ -14,11 +14,7 @@ Commerce is a web application developed as part of Harvard's CS50W course, desig
 
 ## Installation
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/commerce.git
-   cd commerce
-   ```
+1. **Clone the repository**
 
 2. **Install dependencies**:
    Ensure you have Python and Django installed. You can install Django using pip:
